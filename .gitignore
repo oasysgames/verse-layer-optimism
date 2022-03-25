@@ -1,0 +1,9 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# general
+.DS_Store
+.vscode
+
+# dotenv and direnv
+.env
+.envrc
