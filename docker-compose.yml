@@ -1,0 +1,147 @@
+version: '3'
+
+x-common: &common
+  restart: always
+  logging:
+    driver: json-file
+    options:
+      max-size: 100m
+      max-file: 1
+  extra_hosts:
+    - host.docker.internal:host-gateway
+
+x-l2geth: &l2geth
+  image: ghcr.io/oasysgames/oasys-optimism/l2geth:0.5.15
+  entrypoint: /bin/sh /assets/l2geth/run.sh
+
+x-l2geth-environment: &l2geth-environment
+  # General
+  DATADIR: /root/.ethereum
+  NETWORK_ID: $L2_CHAIN_ID
+  CHAIN_ID: $L2_CHAIN_ID
+  BLOCK_SIGNER_ADDRESS: $SEQUENCER_ADDRESS
+  BLOCK_SIGNER_KEY: $SEQUENCER_KEY
+  GENESIS_JSON: /assets/genesis.json
+  VERBOSITY: 3
+  GASPRICE: 0
+  GCMODE: archive
+  NO_USB: 'true'
+  NO_DISCOVER: 'true'
+  TARGET_GAS_LIMIT: 11000000
+  USING_OVM: 'true'
+  # ACL_CONFIG: /assets/acl.yml
+  # L1
+  ETH1_HTTP: $L1_HTTP_URL
+  ETH1_CHAINID: $L1_CHAIN_ID
+  ETH1_CTC_DEPLOYMENT_HEIGHT: 8
+  ETH1_SYNC_SERVICE_ENABLE: 'true'
+  ETH1_CONFIRMATION_DEPTH: 0
+  # Rollup
+  ROLLUP_CLIENT_HTTP: $DTL_HTTP_URL
+  ROLLUP_POLL_INTERVAL_FLAG: 500ms
+  ROLLUP_ENABLE_L2_GAS_POLLING: 'true'
+  ROLLUP_TIMESTAMP_REFRESH: 5s
+  SEQUENCER_CLIENT_HTTP: $L2_HTTP_URL
+  # RPC
+  RPC_ENABLE: 'true'
+  RPC_ADDR: 0.0.0.0
+  RPC_API: eth,web3,net,shh,rollup
+  RPC_CORS_DOMAIN: '*'
+  RPC_VHOSTS: '*'
+  WS: 'true'
+  WS_ADDR: 0.0.0.0
+  WS_API: eth,web3,net,shh,rollup
+  WS_ORIGINS: '*'
+
+services:
+  wallet:
+    build: ./assets/wallet
+    entrypoint: node /assets/wallet/run.js /data/keys.txt
+    volumes:
+      - ./assets:/assets:ro
+      - ./data/wallet:/data
+
+  data-transport-layer:
+    <<: *common
+    image: ethereumoptimism/data-transport-layer:0.5.22
+    entrypoint: /bin/sh /assets/data-transport-layer/run.sh
+    environment:
+      DATA_TRANSPORT_LAYER__SYNC_FROM_L1: 'true'
+      DATA_TRANSPORT_LAYER__SYNC_FROM_L2: 'true'
+      DATA_TRANSPORT_LAYER__L1_RPC_ENDPOINT: $L1_HTTP_URL
+      DATA_TRANSPORT_LAYER__L2_RPC_ENDPOINT: $L2_HTTP_URL
+      DATA_TRANSPORT_LAYER__L2_CHAIN_ID: $L2_CHAIN_ID
+      DATA_TRANSPORT_LAYER__DB_PATH: /data
+      DATA_TRANSPORT_LAYER__DANGEROUSLY_CATCH_ALL_ERRORS: 'true'
+      DATA_TRANSPORT_LAYER__SERVER_HOSTNAME: 0.0.0.0
+      DATA_TRANSPORT_LAYER__CONFIRMATIONS: 2
+      DATA_TRANSPORT_LAYER__POLLING_INTERVAL: 1000
+    volumes:
+      - ./assets:/assets:ro
+      - ./data/data-transport-layer:/data
+    ports:
+      - $DTL_HTTP_PORT:7878/tcp
+
+
+  l2geth:
+    <<: [*common, *l2geth]
+    environment:
+      <<: *l2geth-environment
+    volumes:
+      - ./assets:/assets:ro
+      - ./data/l2geth:/root/.ethereum
+    ports:
+      - $L2GETH_HTTP_PORT:8545/tcp
+      - $L2GETH_WS_PORT:8546/tcp
+
+  verifier:
+    <<: [*common, *l2geth]
+    environment:
+      <<: *l2geth-environment
+      ROLLUP_BACKEND: l1
+      ROLLUP_VERIFIER_ENABLE: 'true'
+    volumes:
+      - ./assets:/assets:ro
+      - ./data/verifier:/root/.ethereum
+
+  batch-submitter:
+    <<: *common
+    image: ethereumoptimism/batch-submitter-service:0.1.8
+    entrypoint: /bin/sh /assets/batch-submitter/run.sh
+    environment:
+      L1_ETH_RPC: $L1_HTTP_URL
+      L2_ETH_RPC: $L2_HTTP_URL
+      BUILD_ENV: production
+      ETH_NETWORK_NAME: clique
+      BATCH_SUBMITTER_SEQUENCER_PRIVATE_KEY: $SEQUENCER_KEY
+      BATCH_SUBMITTER_PROPOSER_PRIVATE_KEY: $PROPOSER_KEY
+      BATCH_SUBMITTER_SEQUENCER_BATCH_TYPE: zlib
+      BATCH_SUBMITTER_LOG_LEVEL: info
+      BATCH_SUBMITTER_LOG_TERMINAL: 'true'
+      BATCH_SUBMITTER_MIN_L1_TX_SIZE: 32
+      BATCH_SUBMITTER_MAX_L1_TX_SIZE: 90000
+      BATCH_SUBMITTER_MIN_STATE_ROOT_ELEMENTS: 8
+      BATCH_SUBMITTER_MAX_STATE_ROOT_ELEMENTS: 1000
+      BATCH_SUBMITTER_MAX_BATCH_SUBMISSION_TIME: 180s
+      BATCH_SUBMITTER_POLL_INTERVAL: 10s
+      BATCH_SUBMITTER_NUM_CONFIRMATIONS: 4
+      BATCH_SUBMITTER_SAFE_ABORT_NONCE_TOO_LOW_COUNT: 3
+      BATCH_SUBMITTER_RESUBMISSION_TIMEOUT: 100s
+      BATCH_SUBMITTER_FINALITY_CONFIRMATIONS: 0
+      BATCH_SUBMITTER_RUN_TX_BATCH_SUBMITTER: 'true'
+      BATCH_SUBMITTER_RUN_STATE_BATCH_SUBMITTER: 'true'
+      BATCH_SUBMITTER_SAFE_MINIMUM_ETHER_BALANCE: 0
+      BATCH_SUBMITTER_CLEAR_PENDING_TXS: 'false'
+    volumes:
+      - ./assets:/assets:ro
+
+  message-relayer:
+    <<: *common
+    image: ghcr.io/oasysgames/oasys-optimism/message-relayer:0.4.1
+    entrypoint: /bin/sh /assets/message-relayer/run.sh
+    environment:
+      MESSAGE_RELAYER__L1_RPC_PROVIDER: $L1_HTTP_URL
+      MESSAGE_RELAYER__L2_RPC_PROVIDER: $L2_HTTP_URL
+      MESSAGE_RELAYER__L1_WALLET: $MESSAGE_RELAYER_KEY
+    volumes:
+      - ./assets:/assets:ro
