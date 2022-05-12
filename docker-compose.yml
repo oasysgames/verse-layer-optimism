@@ -11,7 +11,7 @@ x-common: &common
     - host.docker.internal:host-gateway
 
 x-l2geth: &l2geth
-  image: ghcr.io/oasysgames/oasys-optimism/l2geth:0.5.15
+  image: ghcr.io/oasysgames/oasys-optimism/l2geth:v0.1.1
   entrypoint: /bin/sh /assets/l2geth/run.sh
 
 x-l2geth-environment: &l2geth-environment
@@ -63,7 +63,7 @@ services:
 
   data-transport-layer:
     <<: *common
-    image: ethereumoptimism/data-transport-layer:0.5.22
+    image: ghcr.io/oasysgames/oasys-optimism/data-transport-layer:v0.1.1
     entrypoint: /bin/sh /assets/data-transport-layer/run.sh
     environment:
       DATA_TRANSPORT_LAYER__SYNC_FROM_L1: 'true'
@@ -106,7 +106,7 @@ services:
 
   batch-submitter:
     <<: *common
-    image: ethereumoptimism/batch-submitter-service:0.1.8
+    image: ghcr.io/oasysgames/oasys-optimism/batch-submitter:v0.1.1
     entrypoint: /bin/sh /assets/batch-submitter/run.sh
     environment:
       L1_ETH_RPC: $L1_HTTP_URL
@@ -137,7 +137,7 @@ services:
 
   message-relayer:
     <<: *common
-    image: ghcr.io/oasysgames/oasys-optimism/message-relayer:0.4.1
+    image: ghcr.io/oasysgames/oasys-optimism/message-relayer:v0.1.1
     entrypoint: /bin/sh /assets/message-relayer/run.sh
     environment:
       MESSAGE_RELAYER__L1_RPC_PROVIDER: $L1_HTTP_URL
