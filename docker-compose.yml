@@ -11,7 +11,7 @@ x-common: &common
     - host.docker.internal:host-gateway
 
 x-l2geth: &l2geth
-  image: ghcr.io/oasysgames/oasys-optimism/l2geth:v0.1.1
+  image: ghcr.io/oasysgames/oasys-optimism/l2geth:v0.1.2
   entrypoint: /bin/sh /assets/l2geth/run.sh
 
 x-l2geth-environment: &l2geth-environment
