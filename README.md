@@ -6,7 +6,7 @@ Docker Engine v20.10.0 or later and docker-compose v2.0 or later are required.
 
 ## 2. Create Wallets
 
-Create Ethereum wallets (address and private key) to be used by Verse-Builder, OVM Sequencer, and OVM Proposer.
+Create Ethereum wallets (address and private key) to be used by Builder, Sequencer, and Proposer.
 
 ```shell
 docker-compose run --rm wallet
@@ -45,7 +45,7 @@ git clone https://github.com/oasysgames/oasys-optimism.git /path/to/oasys-optimi
 
 cd /path/to/oasys-optimism/packages/contracts/
 
-git checkout v1.0.0-alpha0
+git checkout v0.1.2
 ```
 
 ### 3-2. Install dependencies and Build contracts
@@ -61,13 +61,16 @@ npx hardhat run scripts/generate-artifacts.ts
 ```shell
 export CONTRACTS_TARGET_NETWORK=oasys
 
-# Verse-Layer chain ID. Can't change it later, please decide carefully.
-export CHAIN_ID=12345
+# Private key of the "builder" wallet
+export CONTRACTS_DEPLOYER_KEY=0x...
 
 # First created wallet addresses
 export BUILDER_ADDRESS=0x...
 export SEQUENCER_ADDRESS=0x...
 export PROPOSER_ADDRESS=0x...
+
+# Your Verse-Layer chain ID. Can't change it later.
+export CHAIN_ID=
 
 # For mainnet
 export CONTRACTS_RPC_URL=https://rpc.mainnet.oasys.games/
@@ -75,15 +78,12 @@ export DEPOSIT_AMOUNT=1000000000000000000000000
 
 # For testnet
 export CONTRACTS_RPC_URL=https://rpc.testnet.oasys.games/
-export DEPOSIT_AMOUNT=0
+export DEPOSIT_AMOUNT=1000000000
 ```
 
 ### 3-4. Deposit OAS token
 
 ```shell
-# Private key of the depositor
-export CONTRACTS_DEPLOYER_KEY=0x...
-
 npx hardhat verse:deposit \
   --network $CONTRACTS_TARGET_NETWORK \
   --builder $BUILDER_ADDRESS \
@@ -96,9 +96,6 @@ depositing (tx: 0x2faa04c92222133e83eb350f03ec698a4b0d2cfe0a549a118401cdc8c1f5ef
 ### 3-5. Deploy contracts
 
 ```shell
-# Private key of the "builder" wallet
-export CONTRACTS_DEPLOYER_KEY=0x...
-
 npx hardhat verse:build \
   --network $CONTRACTS_TARGET_NETWORK \
   --chain-id $CHAIN_ID \
@@ -116,7 +113,7 @@ Success writing genesis block configuration to ./oasys/genesis.json
 
 ### 3-6. Copy files to verse-layer
 
-Copy the configuration filess to `assets` directory of the `verse-layer` repository.
+Copy the generated configuration filess into the `assets` directory of the `verse-layer` repository.
 
 ```shell
 cp ./oasys/addresses.json /path/to/verse-layer/assets/
@@ -124,9 +121,13 @@ cp ./oasys/addresses.json /path/to/verse-layer/assets/
 cp ./oasys/genesis.json /path/to/verse-layer/assets/ 
 ```
 
-When you have completed this step, return to the `reverse-layer` repository.
+When you have completed this step, return to the `verse-layer` repository.
 
-## 4. Create .env
+```shell
+cd /path/to/verse-layer
+```
+
+## 4. Create .env file
 
 Create an environment variable configuration file for containers.
 
@@ -141,7 +142,7 @@ cp .env.sample.testnet .env
 The following settings should be changed.
 
 ```shell
-# Verse-Layer chain ID
+# Your Verse-Layer chain ID
 L2_CHAIN_ID=
 
 # First created wallet address and key
