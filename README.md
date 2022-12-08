@@ -101,7 +101,6 @@ npx hardhat verse:build \
   --chain-id $CHAIN_ID \
   --sequencer $SEQUENCER_ADDRESS \
   --proposer $PROPOSER_ADDRESS \
-  --block-signer $SEQUENCER_ADDRESS \
   --fee-wallet $BUILDER_ADDRESS \
   --gpo-owner $BUILDER_ADDRESS
 
