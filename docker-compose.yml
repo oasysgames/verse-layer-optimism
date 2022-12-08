@@ -19,8 +19,8 @@ x-l2geth-environment: &l2geth-environment
   DATADIR: /root/.ethereum
   NETWORK_ID: $L2_CHAIN_ID
   CHAIN_ID: $L2_CHAIN_ID
-  BLOCK_SIGNER_ADDRESS: $SEQUENCER_ADDRESS
-  BLOCK_SIGNER_KEY: $SEQUENCER_KEY
+  BLOCK_SIGNER_ADDRESS: $BLOCK_SIGNER_ADDRESS
+  BLOCK_SIGNER_KEY: $BLOCK_SIGNER_KEY
   GENESIS_JSON: /assets/genesis.json
   VERBOSITY: 3
   GASPRICE: 0
@@ -93,16 +93,6 @@ services:
     ports:
       - $L2GETH_HTTP_PORT:8545/tcp
       - $L2GETH_WS_PORT:8546/tcp
-
-  verifier:
-    <<: [*common, *l2geth]
-    environment:
-      <<: *l2geth-environment
-      ROLLUP_BACKEND: l1
-      ROLLUP_VERIFIER_ENABLE: 'true'
-    volumes:
-      - ./assets:/assets:ro
-      - ./data/verifier:/root/.ethereum
 
   batch-submitter:
     <<: *common
