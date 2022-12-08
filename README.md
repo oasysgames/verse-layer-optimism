@@ -157,7 +157,6 @@ PROPOSER_KEY=
 ```shell
 docker-compose up -d data-transport-layer
 docker-compose up -d l2geth
-docker-compose up -d verifier
 docker-compose up -d batch-submitter
 docker-compose up -d message-relayer
 ```
