@@ -13,7 +13,7 @@ if (fs.existsSync(outfile)) {
     process.exit(0)
 }
 
-const accounts = [ 'builder', 'sequencer', 'proposer' ]
+const accounts = [ 'builder', 'sequencer', 'proposer', 'message-relayer' ]
 
 let content = `
 - You can share your public address with anyone. Others need it to interact with you.

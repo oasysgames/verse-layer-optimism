@@ -34,6 +34,10 @@ key:     0x0123456789abcdef0123456789abcdef0123456789abcdef
 ---- proposer ----
 Address: 0x0123456789abcdef0123456789abcdef
 key:     0x0123456789abcdef0123456789abcdef0123456789abcdef
+
+---- message-relayer ----
+Address: 0x0123456789abcdef0123456789abcdef
+key:     0x0123456789abcdef0123456789abcdef0123456789abcdef
 ```
 
 ## 3. Deploy contracts for Verse-Layer to Hub-Layer.
@@ -64,7 +68,7 @@ export CONTRACTS_TARGET_NETWORK=oasys
 # Private key of the "builder" wallet
 export CONTRACTS_DEPLOYER_KEY=0x...
 
-# First created wallet addresses
+# Address of created wallets
 export BUILDER_ADDRESS=0x...
 export SEQUENCER_ADDRESS=0x...
 export PROPOSER_ADDRESS=0x...
@@ -144,11 +148,15 @@ The following settings should be changed.
 # Your Verse-Layer chain ID
 L2_CHAIN_ID=
 
-# First created wallet address and key
+# Private key of created wallets
 SEQUENCER_ADDRESS=
 SEQUENCER_KEY=
+
 PROPOSER_ADDRESS=
 PROPOSER_KEY=
+
+MESSAGE_RELAYER_ADDRESS=
+MESSAGE_RELAYER_KEY=
 ```
 
 > **Warning**  
