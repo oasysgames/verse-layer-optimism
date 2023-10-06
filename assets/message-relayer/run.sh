@@ -15,6 +15,7 @@ envSet MESSAGE_RELAYER__L1_STANDARD_BRIDGE Proxy__OVM_L1StandardBridge
 envSet MESSAGE_RELAYER__STATE_COMMITMENT_CHAIN StateCommitmentChain
 envSet MESSAGE_RELAYER__CANONICAL_TRANSACTION_CHAIN CanonicalTransactionChain
 envSet MESSAGE_RELAYER__BOND_MANAGER BondManager
+envSet MESSAGE_RELAYER__IS_MULTICALL 'true'
 
 # waits for l2geth to be up
 curl --fail \
