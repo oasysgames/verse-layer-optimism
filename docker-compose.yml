@@ -134,3 +134,5 @@ services:
       MESSAGE_RELAYER__L1_WALLET: $MESSAGE_RELAYER_KEY
     volumes:
       - ./assets:/assets:ro
+    ports:
+      - $MESSAGE_RELAYER_PORT:7300/tcp
